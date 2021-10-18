@@ -137,7 +137,7 @@ class ApplyFilters extends GraphicOverlay.Graphic {
 //            drawHat(canvas);
 //        }
 
-        drawDesiredFilter(canvas, leftPosition, rightPosition, distance);
+        drawDesiredFilter(canvas, leftPosition, rightPosition, distance, eyeRadius, irisRadius, leftIrisPosition, rightIrisPosition);
 
 //        drawShiningGlasses(canvas, rightPosition, eyeRadius, rightIrisPosition, irisRadius, mRightOpen);
 //        drawLineOfGlasses(canvas, leftPosition, rightPosition, eyeRadius);
@@ -156,18 +156,21 @@ class ApplyFilters extends GraphicOverlay.Graphic {
 //        drawNose(canvas);
     }
 
-    private void drawDesiredFilter(Canvas canvas, PointF leftPosition, PointF rightPosition, float distance) {
+    private void drawDesiredFilter(Canvas canvas, PointF leftPosition, PointF rightPosition, float distance, float eyeRadius, float irisRadius, PointF leftIrisPosition, PointF rightIrisPosition) {
         switch (SetAndGetData.data.getFilterName()) {
             case "bear_face":
                 bearFace(canvas, leftPosition, rightPosition);
                 break;
             case "yellow_face_mask":
+//                drawEye(canvas, leftPosition, eyeRadius, leftIrisPosition, irisRadius, mLeftOpen);
+//                drawEye(canvas, rightPosition, eyeRadius, rightIrisPosition, irisRadius, mRightOpen);
                 yellow_mask(canvas, leftPosition, rightPosition);
                 break;
             case "bear_face_empty":
                 bearFaceEmpty(canvas, leftPosition, rightPosition);
                 break;
             case "black_hearts":
+//                drawShiningGlasses(canvas, rightPosition, eyeRadius);
                 heartsOnHead(canvas, leftPosition, rightPosition);
                 break;
             case "blue_shaded_glasses":
@@ -178,6 +181,9 @@ class ApplyFilters extends GraphicOverlay.Graphic {
                 break;
             case "cat":
                 replaceFace(canvas, leftPosition, rightPosition);
+                break;
+            case "flash_glasses":
+                flash_glasses(canvas, leftPosition, rightPosition, distance);
                 break;
             case "cat_with_crown":
                 crownOnFace(canvas, leftPosition, rightPosition);
@@ -257,26 +263,64 @@ class ApplyFilters extends GraphicOverlay.Graphic {
 
     private void drawGlasses(Canvas canvas, PointF leftEye, PointF rightEye, float dis) {
         float widthScaleFactor = canvas.getWidth() / SetAndGetData.data.getPreviewWidth();
-//        Landmark leftEye = face.getLandmarks().get(Landmark.LEFT_EYE);
-//        Landmark rightEye = face.getLandmarks().get(Landmark.RIGHT_EYE);
-//        if (leftEye != null && rightEye != null) {
-        float eyeDistance = mLeftPosition.x - mRightPosition.x;
-        int delta = Math.round(widthScaleFactor * dis / 2);
+        Rect rectPoints;
 //            face.getPosition().
-//            Rect glassesRect = new Rect(
+//            Rect rectPoints = new Rect(
 //                    Math.round(translateX(mLeftPosition.x)) - delta,
 //                    Math.round(translateY(mLeftPosition.y)) - delta,
 //                    Math.round(translateX(mRightPosition.x)) + delta,
 //                    Math.round(translateY(mRightPosition.y)) + delta);
-        Rect glassesRect = new Rect(
-                Math.round(leftEye.x) - delta + delta / 6,
-                Math.round(leftEye.y) - delta / 5,
-                Math.round(rightEye.x) + delta - delta / 6,
-                Math.round(rightEye.y) + delta / 5);
-
+        if (SetAndGetData.data.isFronCam()) {
+            int delta = Math.round(widthScaleFactor * dis / 2);
+            rectPoints = new Rect(
+                    Math.round(leftEye.x),
+                    Math.round(leftEye.y) - (delta / 3),
+                    Math.round(rightEye.x),
+                    Math.round(rightEye.y) + delta / 5);
+        }else{
+            dis = rightEye.x - leftEye.x;
+            int delta = Math.round(widthScaleFactor * dis / 2);
+            rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta/2),
+                    Math.round(leftEye.y) - (delta/3),
+                    Math.round(rightEye.x) + (delta/2),
+                    Math.round(rightEye.y) + (delta/5));
+        }
         int orientation = SetAndGetData.data.getActivity().getResources().getConfiguration().orientation;
-        if (face.getEulerY() > -15 && face.getEulerY() < 15 && face.getEulerZ() > -5 && face.getEulerZ() < 5) {
-            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, glassesRect, null);
+        if (face.getEulerY() > -15 && face.getEulerY() < 15 && face.getEulerZ() > -15 && face.getEulerZ() < 15) {
+            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, rectPoints, null);
+        }
+//        }
+    }
+
+    private void flash_glasses(Canvas canvas, PointF leftEye, PointF rightEye, float dis) {
+        float widthScaleFactor = canvas.getWidth() / SetAndGetData.data.getPreviewWidth();
+        Rect rectPoints;
+//            face.getPosition().
+//            Rect rectPoints = new Rect(
+//                    Math.round(translateX(mLeftPosition.x)) - delta,
+//                    Math.round(translateY(mLeftPosition.y)) - delta,
+//                    Math.round(translateX(mRightPosition.x)) + delta,
+//                    Math.round(translateY(mRightPosition.y)) + delta);
+        if (SetAndGetData.data.isFronCam()) {
+            int delta = Math.round(widthScaleFactor * dis / 2);
+            rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta),
+                    Math.round(leftEye.y) - (delta/2 + delta/6),
+                    Math.round(rightEye.x) + (delta),
+                    Math.round(rightEye.y) + (delta/5));
+        }else{
+            dis = rightEye.x - leftEye.x;
+            int delta = Math.round(widthScaleFactor * dis / 2);
+            rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta/2),
+                    Math.round(leftEye.y) - (delta/3),
+                    Math.round(rightEye.x) + (delta/2),
+                    Math.round(rightEye.y) + (delta/5));
+        }
+//        int orientation = SetAndGetData.data.getActivity().getResources().getConfiguration().orientation;
+        if (face.getEulerY() > -15 && face.getEulerY() < 15 && face.getEulerZ() > -15 && face.getEulerZ() < 15) {
+            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, rectPoints, null);
         }
 //        }
     }
@@ -287,38 +331,57 @@ class ApplyFilters extends GraphicOverlay.Graphic {
 //        Landmark rightEye = face.getLandmarks().get(Landmark.RIGHT_EYE);
 //        if (leftEye != null && rightEye != null) {
 //        float eyeDistance = mLeftPosition.x - mRightPosition.x;
-        int delta = Math.round(widthScaleFactor * dis / 2);
 //            face.getPosition().
-//            Rect glassesRect = new Rect(
+//            Rect rectPoints = new Rect(
 //                    Math.round(translateX(mLeftPosition.x)) - delta,
 //                    Math.round(translateY(mLeftPosition.y)) - delta,
 //                    Math.round(translateX(mRightPosition.x)) + delta,
 //                    Math.round(translateY(mRightPosition.y)) + delta);
-        Rect glassesRect = new Rect(
-                Math.round(leftEye.x) - delta + delta / 6,
-                Math.round(leftEye.y) - delta / 2,
-                Math.round(rightEye.x) + delta - delta / 6,
-                Math.round(rightEye.y) + delta / 2);
-
+        Rect rectPoints;
+        if(SetAndGetData.data.isFronCam()) {
+            int delta = Math.round(widthScaleFactor * dis / 2);
+            rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta + delta / 6),
+                    Math.round(leftEye.y) - (delta / 2 + delta / 10),
+                    Math.round(rightEye.x) + (delta + delta / 6),
+                    Math.round(rightEye.y) + delta / 2);
+        }else{
+            int delta = Math.round(widthScaleFactor * dis / 2);
+            rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta - delta/2),
+                    Math.round(leftEye.y) - (delta / 2 + delta / 10),
+                    Math.round(rightEye.x) + (delta - delta/2),
+                    Math.round(rightEye.y) + delta / 2);
+        }
 
         int orientation = SetAndGetData.data.getActivity().getResources().getConfiguration().orientation;
         if (face.getEulerY() > -15 && face.getEulerY() < 15 && face.getEulerZ() > -5 && face.getEulerZ() < 5) {
-            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, glassesRect, null);
+            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, rectPoints, null);
         }
 //        }
     }
 
     private void replaceFace(Canvas canvas, PointF leftEye, PointF rightEye) {
         float widthScaleFactor = canvas.getWidth() / SetAndGetData.data.getPreviewWidth();
-
-        float eyeDistance = leftEye.x - rightEye.x;
-        int delta = Math.round(widthScaleFactor * eyeDistance / 2);
-        Rect glassesRect = new Rect(
-                Math.round(leftEye.x) - delta,
-                Math.round(leftEye.y) - delta,
-                Math.round(rightEye.x) + delta,
-                Math.round(rightEye.y) + delta);
-        canvas.drawBitmap(SetAndGetData.data.getIcon(), null, glassesRect, null);
+        Rect rectPoints;
+        if(SetAndGetData.data.isFronCam()) {
+            float eyeDistance = leftEye.x - rightEye.x;
+            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+            rectPoints = new Rect(
+                    Math.round(leftEye.x) - delta,
+                    Math.round(leftEye.y) - (delta + delta/4),
+                    Math.round(rightEye.x) + delta,
+                    Math.round(rightEye.y) + delta);
+        }else{
+            float eyeDistance = rightEye.x - leftEye.x;
+            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+            rectPoints = new Rect(
+                    Math.round(leftEye.x) - delta/2,
+                    Math.round(leftEye.y) - (delta + delta/4),
+                    Math.round(rightEye.x) + delta/2,
+                    Math.round(rightEye.y) + delta);
+        }
+        canvas.drawBitmap(SetAndGetData.data.getIcon(), null, rectPoints, null);
     }
 
     private void drawHat(Canvas canvas) {
@@ -346,8 +409,9 @@ class ApplyFilters extends GraphicOverlay.Graphic {
 //        mHatGraphic.draw(canvas);
     }
 
-    private void drawShiningGlasses(Canvas canvas, PointF eyePosition, float eyeRadius,
-                                    PointF irisPosition, float irisRadius, boolean isOpen) {
+    private void drawShiningGlasses(Canvas canvas, PointF eyePosition, float eyeRadius) {
+//    private void drawShiningGlasses(Canvas canvas, PointF eyePosition, float eyeRadius,
+//                                    PointF irisPosition, float irisRadius, boolean isOpen) {
         Paint _paintSimple = new Paint();
         _paintSimple.setAntiAlias(true);
         _paintSimple.setDither(true);
@@ -372,188 +436,321 @@ class ApplyFilters extends GraphicOverlay.Graphic {
 
     private void crownOnFace(Canvas canvas, PointF leftEye, PointF rightEye) {
         float widthScaleFactor = canvas.getWidth() / SetAndGetData.data.getPreviewWidth();
+        Rect rectPoints;
+        if(SetAndGetData.data.isFronCam()) {
+            float eyeDistance = leftEye.x - rightEye.x;
+            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
 
-//        float eyeDistance = leftEye.x - rightEye.x;
-        float eyeDistance = rightEye.x - leftEye.x;
-        int delta = Math.round(widthScaleFactor * eyeDistance / 2);
-//        Rect glassesRect = new Rect(
-//                Math.round(leftEye.x) - delta,
-//                Math.round(leftEye.y) - (delta + delta / 6),
-//                Math.round(rightEye.x) + delta,
-//                Math.round(rightEye.y) + delta / 2);
+            rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta + delta/2),
+                    Math.round(leftEye.y) - (delta + delta / 4),
+                    Math.round(rightEye.x) + (delta + delta/3),
+                    Math.round(rightEye.y) + delta / 2);
+        }else{
+            float eyeDistance = rightEye.x - leftEye.x;
+            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
 
-        Rect glassesRect = new Rect(
-                Math.round(leftEye.x) - delta/2,
-                Math.round(leftEye.y) - (delta + delta / 6),
-                Math.round(rightEye.x) + delta/2,
-                Math.round(rightEye.y) + delta / 2);
-//                Math.round(leftEye.x) - 115,
-//                Math.round(leftEye.y) - (30),
-//                Math.round(rightEye.x) + 115,
-//                Math.round(rightEye.y) + 200);
-
-        canvas.drawBitmap(SetAndGetData.data.getIcon(), null, glassesRect, null);
-//        canvas.drawLine(leftEye.x, leftEye.y, leftEye.x + 115, leftEye.y, _paintBlur);
+            rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta),
+                    Math.round(leftEye.y) - (delta + delta),
+                    Math.round(rightEye.x) + (delta - delta/8),
+                    Math.round(rightEye.y) + delta / 2 + delta/8);
+        }
+        if (face.getEulerY() > -20 && face.getEulerY() < 20 && face.getEulerZ() > -20 && face.getEulerZ() < 20) {
+            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, rectPoints, null);
+        }
     }
 
     private void rabbitOnFace(Canvas canvas, PointF leftEye, PointF rightEye) {
         float widthScaleFactor = canvas.getWidth() / SetAndGetData.data.getPreviewWidth();
+        Rect rectPoints;
+        if(SetAndGetData.data.isFronCam()) {
+            float eyeDistance = leftEye.x - rightEye.x;
+            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+            rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta + delta/2),
+                    Math.round(leftEye.y) - (delta + delta),
+                    Math.round(rightEye.x) + (delta + delta/2),
+                    Math.round(rightEye.y) + (delta / 2 + delta / 4));
+        }else{
+            float eyeDistance = rightEye.x - leftEye.x;
+            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+            rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta),
+                    Math.round(leftEye.y) - (delta + delta),
+                    Math.round(rightEye.x) + (delta),
+                    Math.round(rightEye.y) + delta);
+        }
 
-        float eyeDistance = leftEye.x - rightEye.x;
-        int delta = Math.round(widthScaleFactor * eyeDistance / 2);
-        Rect glassesRect = new Rect(
-                Math.round(leftEye.x) - (delta + delta / 4),
-                Math.round(leftEye.y) - (delta + delta / 25),
-                Math.round(rightEye.x) + (delta + delta / 4),
-                Math.round(rightEye.y) + (delta / 2));
+//        if(SetAndGetData.data.isFronCam()) {
+//            float eyeDistance = leftEye.x - rightEye.x;
+//            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+//
+//            rectPoints = new Rect(
+//                    Math.round(leftEye.x) - (delta + delta/2),
+//                    Math.round(translateY(face.getPosition().y)),
+//                    Math.round(rightEye.x) + (delta + delta/2),
+//                    Math.round(translateY(NOSEx)));
+//        }else{
+//            float eyeDistance = rightEye.x - leftEye.x;
+//            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+//            rectPoints = new Rect(
+//                    Math.round(leftEye.x) - (delta),
+//                    Math.round(leftEye.y) - (delta + delta),
+//                    Math.round(rightEye.x) + (delta),
+//                    Math.round(rightEye.y) + delta);
+//        }
+
         if (face.getEulerY() > -15 && face.getEulerY() < 15 && face.getEulerZ() > -15 && face.getEulerZ() < 15) {
-            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, glassesRect, null);
+            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, rectPoints, null);
         }
     }
 
     private void dogFilter(Canvas canvas, PointF leftEye, PointF rightEye) {
         float widthScaleFactor = canvas.getWidth() / SetAndGetData.data.getPreviewWidth();
-
-        float eyeDistance = leftEye.x - rightEye.x;
-        int delta = Math.round(widthScaleFactor * eyeDistance / 2);
-        Rect glassesRect = new Rect(
-                Math.round(leftEye.x) - (delta + delta / 4),
-                Math.round(leftEye.y) - (delta + delta / 35),
-                Math.round(rightEye.x) + (delta),
-                Math.round(rightEye.y) + (delta + delta / 2));
+        Rect rectPoints;
+        if(SetAndGetData.data.isFronCam()) {
+            float eyeDistance = leftEye.x - rightEye.x;
+            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+            rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta + delta / 4),
+                    Math.round(leftEye.y) - (delta + delta/2),
+                    Math.round(rightEye.x) + (delta),
+                    Math.round(rightEye.y) + (delta + delta));
+        }else{
+            float eyeDistance = rightEye.x - leftEye.x;
+            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+            rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta + delta/4),
+                    Math.round(leftEye.y) - (delta + delta / 2),
+                    Math.round(rightEye.x) + (delta - delta/12),
+                    Math.round(rightEye.y) + (delta + delta));
+        }
         if (face.getEulerY() > -15 && face.getEulerY() < 15 && face.getEulerZ() > -12 && face.getEulerZ() < 12) {
-            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, glassesRect, null);
+            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, rectPoints, null);
         }
     }
 
     private void flowerOnHead(Canvas canvas, PointF leftEye, PointF rightEye) {
         float widthScaleFactor = canvas.getWidth() / SetAndGetData.data.getPreviewWidth();
 
-        float eyeDistance = leftEye.x - rightEye.x;
-        int delta = Math.round(widthScaleFactor * eyeDistance / 2);
-        Rect glassesRect = new Rect(
-                Math.round(leftEye.x) - (delta),
-                Math.round(leftEye.y) - (delta),
-                Math.round(rightEye.x) + (delta),
-                Math.round(rightEye.y) + delta / 3);
-        if (face.getEulerY() > -18 && face.getEulerY() < 18 && face.getEulerZ() > -18 && face.getEulerZ() < 18) {
-            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, glassesRect, null);
+//        float eyeDistance = leftEye.x - rightEye.x;
+//        int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+//        Rect rectPoints = new Rect(
+//                Math.round(leftEye.x) - (delta),
+//                Math.round(leftEye.y) - (delta),
+//                Math.round(rightEye.x) + (delta),
+//                Math.round(rightEye.y) + delta / 3);
+//        if (face.getEulerY() > -18 && face.getEulerY() < 18 && face.getEulerZ() > -18 && face.getEulerZ() < 18) {
+//            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, rectPoints, null);
+//        }
+
+        if(SetAndGetData.data.isFronCam()) {
+            float eyeDistance = leftEye.x - rightEye.x;
+            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+            Rect rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta + delta / 4),
+                    Math.round(leftEye.y) - (delta + delta / 2),
+                    Math.round(rightEye.x) + (delta + delta / 4),
+                    Math.round(rightEye.y) + delta/4);
+
+            if (face.getEulerY() > -18 && face.getEulerY() < 18 && face.getEulerZ() > -14 && face.getEulerZ() < 14) {
+                canvas.drawBitmap(SetAndGetData.data.getIcon(), null, rectPoints, null);
+            }
+        }else{
+            float eyeDistance = rightEye.x - leftEye.x;
+            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+            Rect rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta/2),
+                    Math.round(leftEye.y) - (delta + delta / 2),
+                    Math.round(rightEye.x) + (delta/2),
+                    Math.round(rightEye.y) + delta/4);
+
+            if (face.getEulerY() > -18 && face.getEulerY() < 18 && face.getEulerZ() > -18 && face.getEulerZ() < 18) {
+                canvas.drawBitmap(SetAndGetData.data.getIcon(), null, rectPoints, null);
+            }
         }
     }
 
     private void heartsOnHead(Canvas canvas, PointF leftEye, PointF rightEye) {
         float widthScaleFactor = canvas.getWidth() / SetAndGetData.data.getPreviewWidth();
-
-        float eyeDistance = leftEye.x - rightEye.x;
-        int delta = Math.round(widthScaleFactor * eyeDistance / 2);
-        Rect glassesRect = new Rect(
-                Math.round(leftEye.x) - (delta),
-                Math.round(leftEye.y) - (delta - delta / 10),
-                Math.round(rightEye.x) + (delta),
-                Math.round(rightEye.y) + delta / 20);
-
+        Rect rectPoints;
+        if (SetAndGetData.data.isFronCam()) {
+            float eyeDistance = leftEye.x - rightEye.x;
+            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+            rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta + delta / 4),
+                    Math.round(leftEye.y) - (delta + delta / 4),
+                    Math.round(rightEye.x) + (delta + delta / 4),
+                    Math.round(rightEye.y) - delta / 4);
+        }else{
+            float eyeDistance = rightEye.x - leftEye.x;
+            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+            rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta/2),
+                    Math.round(leftEye.y) - (delta + delta / 4),
+                    Math.round(rightEye.x) + (delta/2),
+                    Math.round(rightEye.y) - delta / 4);
+        }
 //        if (face.getEulerY() > -18 && face.getEulerY() < 18 && face.getEulerZ() > -18 && face.getEulerZ() < 18) {
-            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, glassesRect, null);
+            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, rectPoints, null);
 //        }
     }
 
     private void blushOnFace(Canvas canvas, PointF leftEye, PointF rightEye) {
         float widthScaleFactor = canvas.getWidth() / SetAndGetData.data.getPreviewWidth();
-
-        float eyeDistance = leftEye.x - rightEye.x;
-        int delta = Math.round(widthScaleFactor * eyeDistance / 2);
-        Rect glassesRect = new Rect(
-                Math.round(leftEye.x) - delta,
-                Math.round(leftEye.y) - delta / 10,
-                Math.round(rightEye.x) + delta,
-                Math.round(rightEye.y) + delta / 2);
+        Rect rectPoints;
+        if(SetAndGetData.data.isFronCam()) {
+            float eyeDistance = leftEye.x - rightEye.x;
+            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+            rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta - delta/10),
+                    Math.round(leftEye.y) + delta/6 ,
+                    Math.round(rightEye.x) + (delta - delta/10),
+                    Math.round(rightEye.y) + delta / 2);
+        }else{
+            float eyeDistance = rightEye.x - leftEye.x;
+            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+            rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta/2),
+                    Math.round(leftEye.y) - delta / 20,
+                    Math.round(rightEye.x) + (delta/2),
+                    Math.round(rightEye.y) + delta / 2);
+        }
         if (face.getEulerY() > -18 && face.getEulerY() < 18 && face.getEulerZ() > -18 && face.getEulerZ() < 18) {
-            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, glassesRect, null);
+            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, rectPoints, null);
         }
     }
 
     private void dogFace(Canvas canvas, PointF leftEye, PointF rightEye) {
         float widthScaleFactor = canvas.getWidth() / SetAndGetData.data.getPreviewWidth();
-
-        float eyeDistance = leftEye.x - rightEye.x;
-        int delta = Math.round(widthScaleFactor * eyeDistance / 2);
-        Rect glassesRect = new Rect(
-                Math.round(leftEye.x) - (delta + delta / 6),
-                Math.round(leftEye.y) - (delta + delta / 15),
-                Math.round(rightEye.x) + (delta + delta / 6),
-                Math.round(rightEye.y) + (delta + delta / 15));
+        Rect rectPoints;
+        if(SetAndGetData.data.isFronCam()) {
+            float eyeDistance = leftEye.x - rightEye.x;
+            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+            rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta + delta / 2),
+                    Math.round(leftEye.y) - (delta + delta / 4),
+                    Math.round(rightEye.x) + (delta + delta / 2),
+                    Math.round(rightEye.y) + (delta + delta - delta/20));
+        }else{
+            float eyeDistance = rightEye.x - leftEye.x;
+            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+            rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta ),
+                    Math.round(leftEye.y) - (delta + delta / 4),
+                    Math.round(rightEye.x) + (delta ),
+                    Math.round(rightEye.y) + (delta + delta));
+        }
         if (face.getEulerY() > -18 && face.getEulerY() < 18 && face.getEulerZ() > -18 && face.getEulerZ() < 18) {
-            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, glassesRect, null);
+            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, rectPoints, null);
         }
     }
 
     private void bearFace(Canvas canvas, PointF leftEye, PointF rightEye) {
         float widthScaleFactor = canvas.getWidth() / SetAndGetData.data.getPreviewWidth();
-
-        float eyeDistance = leftEye.x - rightEye.x;
-        int delta = Math.round(widthScaleFactor * eyeDistance / 2);
-        Rect glassesRect = new Rect(
-                Math.round(leftEye.x) - (delta + delta / 10),
-                Math.round(leftEye.y) - (delta - delta / 10),
-                Math.round(rightEye.x) + (delta + delta / 10),
-                Math.round(rightEye.y) + (delta));
+        Rect rectPoints;
+            if(SetAndGetData.data.isFronCam()) {
+                float eyeDistance = leftEye.x - rightEye.x;
+                int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+                rectPoints = new Rect(
+                        Math.round(leftEye.x) - (delta + delta / 6),
+                        Math.round(leftEye.y) - (delta),
+                        Math.round(rightEye.x) + (delta + delta / 6),
+                        Math.round(rightEye.y) + (delta + delta / 5));
+            }else{
+                float eyeDistance = rightEye.x - leftEye.x;
+                int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+                rectPoints = new Rect(
+                        Math.round(leftEye.x) - (delta/2),
+                        Math.round(leftEye.y) - (delta),
+                        Math.round(rightEye.x) + (delta/2),
+                        Math.round(rightEye.y) + (delta + delta / 5));
+            }
         if (face.getEulerY() > -18 && face.getEulerY() < 18 && face.getEulerZ() > -14 && face.getEulerZ() < 14) {
-            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, glassesRect, null);
+            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, rectPoints, null);
         }
     }
 
     private void bearFaceEmpty(Canvas canvas, PointF leftEye, PointF rightEye) {
         float widthScaleFactor = canvas.getWidth() / SetAndGetData.data.getPreviewWidth();
-
-        float eyeDistance = leftEye.x - rightEye.x;
-        int delta = Math.round(widthScaleFactor * eyeDistance / 2);
-        Rect glassesRect = new Rect(
-                Math.round(leftEye.x) - (delta + delta / 10),
-                Math.round(leftEye.y) - (delta - delta / 10),
-                Math.round(rightEye.x) + (delta + delta / 10),
-                Math.round(rightEye.y) + (delta));
+        Rect rectPoints;
+        if(SetAndGetData.data.isFronCam()) {
+            float eyeDistance = leftEye.x - rightEye.x;
+            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+            rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta + delta / 3),
+                    Math.round(leftEye.y) - (delta),
+                    Math.round(rightEye.x) + (delta + delta / 3),
+                    Math.round(rightEye.y) + (delta + delta / 5));
+        }else{
+            float eyeDistance = rightEye.x - leftEye.x;
+            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+            rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta - delta/4),
+                    Math.round(leftEye.y) - (delta),
+                    Math.round(rightEye.x) + (delta - delta/4),
+                    Math.round(rightEye.y) + (delta + delta / 5));
+        }
         if (face.getEulerY() > -18 && face.getEulerY() < 18 && face.getEulerZ() > -14 && face.getEulerZ() < 14) {
-            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, glassesRect, null);
+            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, rectPoints, null);
         }
     }
 
     private void fireOnHead(Canvas canvas, PointF leftEye, PointF rightEye) {
         float widthScaleFactor = canvas.getWidth() / SetAndGetData.data.getPreviewWidth();
 
-        float eyeDistance = leftEye.x - rightEye.x;
-        int delta = Math.round(widthScaleFactor * eyeDistance / 2);
-        Rect glassesRect = new Rect(
-                Math.round(leftEye.x) - (delta),
-                Math.round(leftEye.y) - (delta),
-                Math.round(rightEye.x) + (delta),
-                Math.round(rightEye.y) - delta / 6);
-//        float eyeDistance = rightEye.x - leftEye.x;
-//        int delta = Math.round(widthScaleFactor * eyeDistance / 2);
-//        Rect glassesRect = new Rect(
-//                Math.round(leftEye.x) - (delta/2),
-//                Math.round(leftEye.y) - (delta),
-//                Math.round(rightEye.x) + (delta/2),
-//                Math.round(rightEye.y) - delta / 6);
-        if (face.getEulerY() > -18 && face.getEulerY() < 18 && face.getEulerZ() > -14 && face.getEulerZ() < 14) {
-            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, glassesRect, null);
+        if(SetAndGetData.data.isFronCam()) {
+            float eyeDistance = leftEye.x - rightEye.x;
+            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+            Rect rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta + delta / 4),
+                    Math.round(leftEye.y) - (delta + delta / 4),
+                    Math.round(rightEye.x) + (delta + delta / 4),
+                    Math.round(rightEye.y) - delta / 4);
+
+            if (face.getEulerY() > -18 && face.getEulerY() < 18 && face.getEulerZ() > -14 && face.getEulerZ() < 14) {
+                canvas.drawBitmap(SetAndGetData.data.getIcon(), null, rectPoints, null);
+            }
+        }else{
+            float eyeDistance = rightEye.x - leftEye.x;
+            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+            Rect rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta/2),
+                    Math.round(leftEye.y) - (delta + delta / 4),
+                    Math.round(rightEye.x) + (delta/2),
+                    Math.round(rightEye.y) - delta / 4);
+
+            if (face.getEulerY() > -18 && face.getEulerY() < 18 && face.getEulerZ() > -14 && face.getEulerZ() < 14) {
+                canvas.drawBitmap(SetAndGetData.data.getIcon(), null, rectPoints, null);
+            }
         }
     }
 
     private void yellow_mask(Canvas canvas, PointF leftEye, PointF rightEye) {
         float widthScaleFactor = canvas.getWidth() / SetAndGetData.data.getPreviewWidth();
-
-        float eyeDistance = leftEye.x - rightEye.x;
-        int delta = Math.round(widthScaleFactor * eyeDistance / 2);
-        Rect glassesRect = new Rect(
-                Math.round(leftEye.x) - (delta + delta / 8),
-                Math.round(leftEye.y) - delta/8,
-                Math.round(rightEye.x) + (delta + delta / 8),
-                Math.round(rightEye.y) + (delta + delta / 15));
-        if (face.getEulerY() > -20 && face.getEulerY() < 20 && face.getEulerZ() > -20 && face.getEulerZ() < 20) {
-            SetAndGetData.data.setCanvas(canvas);
-            SetAndGetData.data.setRect(glassesRect);
-//            canvas.drawLine(leftEye.x, leftEye.y, rightEye.x, rightEye.y, mEyeLidPaint);
-            canvas.drawBitmap(SetAndGetData.data.getIcon(), null, glassesRect, null);
+        if (SetAndGetData.data.isFronCam()) {
+            float eyeDistance = leftEye.x - rightEye.x;
+            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+            Rect rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta + delta/2),
+                    Math.round(leftEye.y) - delta / 6,
+                    Math.round(rightEye.x) + (delta + delta/2),
+                    Math.round(rightEye.y) + (delta + delta/2 + delta/4));
+            if (face.getEulerY() > -20 && face.getEulerY() < 20 && face.getEulerZ() > -20 && face.getEulerZ() < 20) {
+                canvas.drawBitmap(SetAndGetData.data.getIcon(), null, rectPoints, null);
+            }
+        }else{
+            float eyeDistance = rightEye.x - leftEye.x;
+            int delta = Math.round(widthScaleFactor * eyeDistance / 2);
+            Rect rectPoints = new Rect(
+                    Math.round(leftEye.x) - (delta - delta/4),
+                    Math.round(leftEye.y) - delta / 6,
+                    Math.round(rightEye.x) + (delta - delta/4),
+                    Math.round(rightEye.y) + (delta + delta / 2 + delta/4));
+            if (face.getEulerY() > -20 && face.getEulerY() < 20 && face.getEulerZ() > -20 && face.getEulerZ() < 20) {
+                canvas.drawBitmap(SetAndGetData.data.getIcon(), null, rectPoints, null);
+            }
         }
     }
 

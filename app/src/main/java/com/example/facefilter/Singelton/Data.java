@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
+import android.net.Uri;
 
 import com.example.facefilter.CameraAndOverlay.GraphicOverlay;
 import com.google.android.gms.vision.face.Face;
@@ -20,8 +21,34 @@ public class Data {
     private GraphicOverlay mOverlay;
     private String filterName = "";
     int format;
+    Uri toShareUri;
     Canvas canvas;
     Rect rect;
+    boolean isFronCam = false, isFlash = false;
+
+    public Uri getToShareUri() {
+        return toShareUri;
+    }
+
+    public void setToShareUri(Uri toShareUri) {
+        this.toShareUri = toShareUri;
+    }
+
+    public boolean isFlash() {
+        return isFlash;
+    }
+
+    public void setFlash(boolean flash) {
+        isFlash = flash;
+    }
+
+    public boolean isFronCam() {
+        return isFronCam;
+    }
+
+    public void setFronCam(boolean fronCam) {
+        isFronCam = fronCam;
+    }
 
     public Canvas getCanvas() {
         return canvas;
